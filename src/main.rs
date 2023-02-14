@@ -3,9 +3,39 @@ use fundsp::hacker::*;
 fn main() {
     println!("Hello, world!");
 
-    let wave1 = Wave64::render(44100.0, 3.0, &mut (pink()));
-    let mut wave2 = wave1.filter(3.0, &mut ((pass() | lfo(|t| (xerp11(110.0, 880.0, spline_noise(0, t * 5.0)), 1.0))) >> bandpass()));
-    // wave2.normalize();
-    
-    wave2.save_wav16("test/sounds/pink_noise_filtered.wav").expect("Could not save.");
+    let pink_noise = Wave64::render(44100.0, 3.0, &mut (pink()));
+    let mut pink_filtered = pink_noise.filter(
+        3.0,
+        &mut ((pass() | lfo(|t| (xerp11(110.0, 880.0, spline_noise(0, t * 5.0)), 1.0)))
+            >> bandpass()),
+    );
+    pink_filtered.normalize();
+
+    let brown_noise = Wave64::render(44100.0, 3.0, &mut (brown()));
+    let mut brown_filtered = brown_noise.filter(
+        3.0,
+        &mut ((pass() | lfo(|t| (xerp11(110.0, 880.0, spline_noise(0, t * 5.0)), 1.0)))
+            >> bandpass()),
+    );
+    brown_filtered.normalize();
+
+    let white_noise = Wave64::render(44100.0, 3.0, &mut (white()));
+    let mut white_filtered = white_noise.filter(
+        3.0,
+        &mut ((pass() | lfo(|t| (xerp11(110.0, 880.0, spline_noise(0, t * 5.0)), 1.0)))
+            >> bandpass()),
+    );
+    white_filtered.normalize();
+
+    pink_filtered
+        .save_wav16("test/sounds/pink_noise_filtered.wav")
+        .expect("Could not save.");
+
+    brown_filtered
+        .save_wav16("test/sounds/brown_noise_filtered.wav")
+        .expect("Could not save");
+
+    white_filtered
+        .save_wav16("test/sounds/white_noise_filtered.wav")
+        .expect("Could not save");
 }
