@@ -1,7 +1,25 @@
 use fundsp::hacker::*;
 
+enum NoiseColor {
+    Brown,
+    Pink,
+    White,
+}
+
+fn render_noise(noise: NoiseColor) {
+    match noise {
+        NoiseColor::Brown => println!("Brown Noise"),
+        NoiseColor::Pink => println!("Pink Noise"),
+        NoiseColor::White => println!("White Noise"),
+    }
+}
+
 fn main() {
     println!("Hello, world!");
+
+    render_noise(NoiseColor::Brown);
+    render_noise(NoiseColor::Pink);
+    render_noise(NoiseColor::White);
 
     let pink_noise = Wave64::render(44100.0, 3.0, &mut (pink()));
     let mut pink_filtered = pink_noise.filter(
