@@ -6,13 +6,14 @@ enum NoiseColor {
 }
 
 impl NoiseColor {
-    fn render(&self) {
-        match self {
+    fn render(&self) -> Wave64 {
+        let wave = match self {
             Self::Brown => Wave64::render(44100.0, 3.0, &mut (brown())),
             Self::Pink => Wave64::render(44100.0, 3.0, &mut (pink())),
             Self::White => Wave64::render(44100.0, 3.0, &mut (white())),
         };
-        
+
+        return wave;
     } 
 }
 
@@ -24,8 +25,8 @@ fn main() {
 
     color
         .render()
-        // .save_wav16("test/sounds/brown_noise.wav")
-    ;
+        .save_wav16("test/sounds/brown_noise.wav")
+        .expect("Could not save file.");
 
     let pink_noise = Wave64::render(44100.0, 3.0, &mut (pink()));
     let mut pink_filtered = pink_noise.filter(
@@ -55,9 +56,9 @@ fn main() {
         .save_wav16("test/sounds/pink_noise_filtered.wav")
         .expect("Could not save.");
 
-    brown_filtered
-        .save_wav16("test/sounds/brown_noise_filtered.wav")
-        .expect("Could not save");
+    // brown_filtered
+    //     .save_wav16("test/sounds/brown_noise_filtered.wav")
+    //     .expect("Could not save");
 
     white_filtered
         .save_wav16("test/sounds/white_noise_filtered.wav")
