@@ -1,54 +1,39 @@
 use fundsp::hacker::*;
+use iced::widget::{button, column, text, Column};
 
 
-enum NoiseColor {
-    Brown,
-    Pink,
-    White,
+#[derive(Debug, Clone, Copy)]
+pub enum Message {
+    IncrementPressed,
+    DecrementPressed,
 }
 
 
-impl NoiseColor {
-    fn render(&self, normalize: bool) -> Wave64 {
-        let mut wave = match self {
-            Self::Brown => Wave64::render(44100.0, 3.0, &mut (brown())),
-            Self::Pink => Wave64::render(44100.0, 3.0, &mut (pink())),
-            Self::White => Wave64::render(44100.0, 3.0, &mut (white())),
-        };
+struct Counter {
+    value: i32,
+}
 
-        if normalize {
-            wave.normalize();
+
+impl Counter {
+    pub fn view(&self) -> Column<Message> {
+        column![
+            button("+").on_press(Message::IncrementPressed),
+            text(self.value).size(50),
+            button("-").on_press(Message::DecrementPressed),
+        ]
+    }
+
+    pub fn update(&mut self, message: Message) {
+        match message {
+            Message::IncrementPressed => self.value += 1,
+            Message::DecrementPressed => self.value -= 1
         }
-
-        return wave;
     }
 }
 
 
-fn main() {
-    println!("Hello, world!");
-
-    let color = NoiseColor::Brown;
-    let mut node = (pass() | lfo(|t| (xerp11(110.0, 880.0, spline_noise(0, t*5.0)), 10.))) >> bandpass();
-    let normalize = true;
-
-    color
-        .render(normalize)
-        .filter(3.0, &mut node)
-        .save_wav16("test/sounds/brown_noise_filtered.wav")
-        .expect("Could not save file.");
-
-    let color = NoiseColor::Pink;
-    color
-        .render(normalize)
-        .filter(3.0, &mut node)
-        .save_wav16("test/sounds/pink_noise_filtered.wav")
-        .expect("Could not save file.");
-
-    let color = NoiseColor::White;
-    color
-        .render(normalize)
-        .filter(3.0, &mut node)
-        .save_wav16("test/sounds/white_noise_filtered.wav")
-        .expect("Could not save file.");
+fn main() -> iced::Result {
+    println!("Exploring the 🌊's...");
+    
+    
 }
