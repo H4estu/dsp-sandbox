@@ -1,54 +1,67 @@
 use fundsp::hacker::*;
+use iced::widget::{button, column, horizontal_rule, text};
+use iced::executor;
+use iced::{Alignment, Application, Command, Element, Settings, Theme};
 
 
-enum NoiseColor {
-    Brown,
-    Pink,
-    White,
+#[derive(Debug, Clone, Copy)]
+pub enum Message {
+    IncrementPressed,
+    DecrementPressed,
 }
 
 
-impl NoiseColor {
-    fn render(&self, normalize: bool) -> Wave64 {
-        let mut wave = match self {
-            Self::Brown => Wave64::render(44100.0, 3.0, &mut (brown())),
-            Self::Pink => Wave64::render(44100.0, 3.0, &mut (pink())),
-            Self::White => Wave64::render(44100.0, 3.0, &mut (white())),
+struct Counter {
+    value: i32,
+}
+
+
+impl Application for Counter {
+    type Executor = executor::Default;
+    type Flags = ();
+    type Message = Message;
+    type Theme = Theme;
+
+    fn new(_flags: ()) -> (Counter, Command<Self::Message>) {
+        (
+            Counter{value: 0},
+            Command::none(),
+        )
+    }
+
+    fn theme(&self) -> Self::Theme {
+        Self::Theme::Dark
+    }
+
+    fn title(&self) -> String {
+        String::from("🌊")
+    }
+
+    fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
+       match message {
+            Message::IncrementPressed => self.value += 10,
+            Message::DecrementPressed => self.value -= 10
         };
+        Command::none()
+    }
 
-        if normalize {
-            wave.normalize();
-        }
-
-        return wave;
+    fn view(&self) -> Element<Self::Message> {
+        column![
+            text("Incremening Button"),
+            horizontal_rule(10),
+            button("+").on_press(Message::IncrementPressed),
+            text(self.value).size(50),
+            button("-").on_press(Message::DecrementPressed),
+        ]
+        .padding(50)
+        .align_items(Alignment::Center)
+        .into()
     }
 }
 
 
-fn main() {
-    println!("Hello, world!");
+fn main() -> iced::Result {
+    println!("Exploring the 🌊's...");
 
-    let color = NoiseColor::Brown;
-    let mut node = (pass() | lfo(|t| (xerp11(110.0, 880.0, spline_noise(0, t*5.0)), 10.))) >> bandpass();
-    let normalize = true;
-
-    color
-        .render(normalize)
-        .filter(3.0, &mut node)
-        .save_wav16("test/sounds/brown_noise_filtered.wav")
-        .expect("Could not save file.");
-
-    let color = NoiseColor::Pink;
-    color
-        .render(normalize)
-        .filter(3.0, &mut node)
-        .save_wav16("test/sounds/pink_noise_filtered.wav")
-        .expect("Could not save file.");
-
-    let color = NoiseColor::White;
-    color
-        .render(normalize)
-        .filter(3.0, &mut node)
-        .save_wav16("test/sounds/white_noise_filtered.wav")
-        .expect("Could not save file.");
+    Counter::run(Settings::default())    
 }
