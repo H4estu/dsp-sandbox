@@ -11,10 +11,9 @@ pub enum Message {
 }
 
 
-// struct Counter {
-    // value: i32,
-// }
-struct Counter;
+struct Counter {
+    value: i32,
+}
 
 
 impl Application for Counter {
@@ -24,28 +23,27 @@ impl Application for Counter {
     type Theme = Theme;
 
     fn new(_flags: ()) -> (Counter, Command<Self::Message>) {
-        (Counter, Command::none())
+        (Counter{value: 0}, Command::none())
     }
 
     fn title(&self) -> String {
         String::from("🌊")
     }
 
-    fn update(&mut self, _message: Self::Message) -> Command<Self::Message> {
-        // match message {
-            // Message::IncrementPressed => self.value += 1,
-            // Message::DecrementPressed => self.value -= 1
-        // }
+    fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
+       match message {
+            Message::IncrementPressed => self.value += 10,
+            Message::DecrementPressed => self.value -= 10
+        };
         Command::none()
     }
 
     fn view(&self) -> Element<Self::Message> {
-        // column![
-        //     button("+").on_press(Message::IncrementPressed),
-        //     text(self.value).size(50),
-        //     button("-").on_press(Message::DecrementPressed),
-        // ]
-        "Exploring the waves...".into()
+        column![
+            button("+").on_press(Message::IncrementPressed),
+            text(self.value).size(50),
+            button("-").on_press(Message::DecrementPressed),
+        ].into()
     }
 }
 
