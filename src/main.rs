@@ -1,7 +1,7 @@
 use fundsp::hacker::*;
-use iced::widget::{button, column, horizontal_rule, text};
+use iced::widget::{button, column, horizontal_rule, horizontal_space, row, text};
 use iced::executor;
-use iced::{Alignment, Application, Command, Element, Settings, Theme};
+use iced::{Alignment, Application, Command, Element, Length, Settings, Theme};
 
 
 #[derive(Debug, Clone, Copy)]
@@ -46,7 +46,7 @@ impl Application for Counter {
     }
 
     fn view(&self) -> Element<Self::Message> {
-        column![
+        let button_col = column![
             text("Incremening Button"),
             horizontal_rule(10),
             button("+").on_press(Message::IncrementPressed),
@@ -54,8 +54,14 @@ impl Application for Counter {
             button("-").on_press(Message::DecrementPressed),
         ]
         .padding(50)
-        .align_items(Alignment::Center)
+        .align_items(Alignment::Center);
+
+        button_col
+        // .push(horizontal_space(Length::Fill))
+        .push(horizontal_rule(10))
+        .push(button("hello"))
         .into()
+
     }
 }
 
