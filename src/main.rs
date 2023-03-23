@@ -6,6 +6,7 @@ use iced::{Color, executor, Renderer};
 use iced::{Alignment, Application, Command, Element, Length, Point, Rectangle, Settings, Subscription, Theme};
 use iced::{window};
 
+use std::process::Command as ShellCommand;
 use std::time::Instant;
 
 
@@ -119,7 +120,15 @@ impl Application for Waveform {
             // Message::IncreaseAmplitude => self.state.amplitude += 1.0,
             // Message::DecreaseAmplitude => self.state.amplitude -= 1.0
             // Message::Tick(instant) => self.state.update(instant),
-            Message::TogglePlayback => self.is_playing = !self.is_playing,
+            Message::TogglePlayback => {
+                self.is_playing = !self.is_playing;
+                println!("Play/pause toggled!");
+                ShellCommand::new("play")
+                    .arg("-n")
+                    .arg("synth sin %-12 sin %-9 sin %-5 sin %-2")
+                    .output()
+                    .expect("Could not play sound.")
+            }
         };
         Command::none()
     }
