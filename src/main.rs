@@ -130,8 +130,12 @@ impl Application for Waveform {
             // .height(Length::Fill)
             // .into()
         column![
-            button(if self.is_playing{"play"} else {"pause"}).on_press(Message::TogglePlayback)
-        ].into()
+            text("Toggle Play"),
+            horizontal_rule(10),
+            button(if self.is_playing{"play"} else {"pause"}).on_press(Message::TogglePlayback),
+        ]
+        .align_items(Alignment::Center)
+        .into()
     }
 
     // fn subscription(&self) -> Subscription<Message> {
