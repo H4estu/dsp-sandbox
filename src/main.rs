@@ -122,12 +122,10 @@ impl Application for Waveform {
             // Message::Tick(instant) => self.state.update(instant),
             Message::TogglePlayback => {
                 self.is_playing = !self.is_playing;
-                println!("Play/pause toggled!");
-                ShellCommand::new("play")
-                    .arg("-n")
-                    .arg("synth sin %-12 sin %-9 sin %-5 sin %-2")
-                    .output()
-                    .expect("Could not play sound.")
+
+                if self.is_playing {
+                    play_sound()
+                }
             }
         };
         Command::none()
@@ -150,6 +148,22 @@ impl Application for Waveform {
     // fn subscription(&self) -> Subscription<Message> {
     //     window::frames().map(Message::Tick)
     // }
+}
+
+fn play_sound() {
+    println!("Playing a sweet 7th");
+    let sound = ShellCommand::new("play")
+        .arg("-n")
+        .arg("-c 1")
+        .arg("synth")
+        // .arg("sin %-12")
+        // .arg("sin %-9")
+        // .arg("sin %-5")
+        // .arg("sin %-2")
+        .output()
+        .expect("Could not play sound.");
+    println!("{:?}", sound.stdout);
+    println!("{:?}", sound.stderr);
 }
 
 fn main() -> iced::Result {
