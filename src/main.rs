@@ -1,4 +1,12 @@
+use anyhow;
+
+use cpal::{
+    traits::{DeviceTrait, HostTrait, StreamTrait},
+    FromSample, Sample, SizedSample,
+};
+
 use fundsp::hacker::*;
+
 use iced::widget::{button, column, horizontal_rule, horizontal_space, row, text};
 use iced::widget::canvas;
 // use iced::widget::canvas::stroke::{self, Stroke};
@@ -166,8 +174,26 @@ fn play_sound() {
     println!("{:?}", sound.stderr);
 }
 
+fn host_device_setup() -> Result<(cpal::Host, cpal::Device, cpal::SupportedStreamConfig), anyhow::Error> {
+    println!("Setting up host deivce...");
+
+    let host = cpal::default_host();
+
+    let device = host
+        .default_output_device()
+        .ok_or_else(|| anyhow::Error::msg("Default output device not available."))?;
+    println!("Output device: {}", device.name()?);
+
+    let config = device.default_output_config()?;
+    println!("Default output config: {:?}", config);
+
+    Ok((host, device, config))
+}
+
 fn main() -> iced::Result {
     println!("Exploring the 🌊's...");
+
+    let (_host, _device, _config) = host_device_setup().unwrap();
 
     Waveform::run(Settings::default())    
 }
