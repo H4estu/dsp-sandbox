@@ -134,7 +134,7 @@ impl Application for Waveform {
                 self.is_playing = !self.is_playing;
 
                 if self.is_playing {
-                    // play_sound()
+                    // play_sound_sox()
                     play_sound_cpal()
                 }
             }
@@ -172,7 +172,7 @@ fn play_sound_cpal() {
 
 }
 
-fn play_sound() {
+fn play_sound_sox() {
     println!("Playing a sweet 7th");
     let sound = ShellCommand::new("play")
         .arg("-n")
