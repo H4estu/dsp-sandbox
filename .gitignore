@@ -1,0 +1,5 @@
+/target
+/external/sounds
+/test/sounds
+
+cargo.lock
