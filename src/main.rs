@@ -65,15 +65,14 @@ impl Application for Waveform {
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
-            Message::TogglePlayback => {
-                self.is_playing = !self.is_playing;
-
-                if self.is_playing {
-                    // play_sound_sox()
-                    play_sound_cpal()
-                }
-            }
+            Message::TogglePlayback => self.is_playing = !self.is_playing
         };
+        if self.is_playing {
+            // play_sound_sox()
+            play_sound_cpal()
+        } else {
+            pause_signal()
+        }
         Command::none()
     }
 
@@ -143,15 +142,16 @@ where
 {
     // Signal chain to play back one second of each oscillator at A4
     let hz = signal::rate(config.sample_rate.0 as f64).const_hz(440.);
-    let one_sec = config.sample_rate.0 as usize;
+    let ten_sec = (10*config.sample_rate.0) as usize;
     let mut synth = hz
         .clone()
         .sine()
-        .take(one_sec)
-        .chain(hz.clone().saw().take(one_sec))
-        .chain(hz.clone().square().take(one_sec))
-        .chain(hz.clone().noise_simplex().take(one_sec))
-        .chain(signal::noise(0).take(one_sec))
+        // .take(one_sec)
+        .take(ten_sec)
+        // .chain(hz.clone().saw().take(one_sec))
+        // .chain(hz.clone().square().take(one_sec))
+        // .chain(hz.clone().noise_simplex().take(one_sec))
+        // .chain(signal::noise(0).take(one_sec))
         .map(|s| s.to_sample::<f32>() *0.2);
 
     // A channel for indicating when playback has completed
@@ -201,6 +201,9 @@ where
 
 fn main() -> iced::Result {
     println!("Exploring the 🌊's...");
+
+    // TODO: play/pause event loop
+    // Probably want to investigate cpal::StreamTrait
 
     Waveform::run(Settings::default())    
 }
