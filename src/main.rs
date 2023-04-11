@@ -21,9 +21,27 @@ enum Message {
     TogglePlayback,
 }
 
-#[derive(Default)]
+// #[derive(Default)]
 struct Waveform {
     is_playing: bool,
+    host: cpal::Host,
+    device: cpal::Device,
+    supported_stream_config: cpal::SupportedStreamConfig,
+
+}
+
+impl Default for Waveform {
+
+    fn default() -> Self {
+        // Setup default audio backend
+        let (_host, device, config) = host_device_setup().unwrap();
+        Waveform {
+            is_playing: false,
+            host: _host,
+            device: device,
+            supported_stream_config: config,
+        }
+    }
 }
 
 
@@ -34,12 +52,7 @@ impl Application for Waveform {
     type Theme = Theme;
 
     fn new(_flags: ()) -> (Waveform, Command<Self::Message>) {
-        (
-            Waveform {
-                is_playing: false,
-            },
-            Command::none(),
-        )
+        (Waveform::default(), Command::none())
     }
 
     fn theme(&self) -> Self::Theme {
@@ -68,15 +81,21 @@ impl Application for Waveform {
         column![
             text("Toggle Play"),
             horizontal_rule(10),
-            button(if self.is_playing{"play"} else {"pause"}).on_press(Message::TogglePlayback),
+            button(if self.is_playing{"pause"} else {"play"}).on_press(Message::TogglePlayback),
         ]
         .align_items(Alignment::Center)
         .into()
     }
 }
 
+fn pause_signal() {
+
+}
+
 fn play_sound_cpal() {
-    let (_host, device, config) = host_device_setup().unwrap();
+
+    let config = Waveform::default().supported_stream_config;
+    let device = Waveform::default().device;
 
     // Only care about f32 for now.
     match config.sample_format() {
