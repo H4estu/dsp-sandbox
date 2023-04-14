@@ -6,14 +6,11 @@ use cpal::{
 
 use dasp::{signal, Sample, Signal};
 
-// use fundsp::hacker::*;
-
 use iced::widget::{button, column, horizontal_rule, text};
 use iced::{Alignment, Application, executor, Command, Element, Settings, Theme};
 
-use std::process::Command as ShellCommand;
 use std::sync::mpsc;
-use std::time::{Duration};
+use std::time::Duration;
 
 
 #[derive(Debug, Clone, Copy)]
@@ -24,7 +21,7 @@ enum Message {
 // #[derive(Default)]
 struct Waveform {
     is_playing: bool,
-    host: cpal::Host,
+    _host: cpal::Host,
     device: cpal::Device,
     supported_stream_config: cpal::SupportedStreamConfig,
 
@@ -37,7 +34,7 @@ impl Default for Waveform {
         let (_host, device, config) = host_device_setup().unwrap();
         Waveform {
             is_playing: false,
-            host: _host,
+            _host: _host,
             device: device,
             supported_stream_config: config,
         }
@@ -68,10 +65,7 @@ impl Application for Waveform {
             Message::TogglePlayback => self.is_playing = !self.is_playing
         };
         if self.is_playing {
-            // play_sound_sox()
-            play_sound_cpal()
-        } else {
-            pause_signal()
+            play_sound_cpal();
         }
         Command::none()
     }
@@ -87,10 +81,6 @@ impl Application for Waveform {
     }
 }
 
-fn pause_signal() {
-
-}
-
 fn play_sound_cpal() {
 
     let config = Waveform::default().supported_stream_config;
@@ -102,22 +92,6 @@ fn play_sound_cpal() {
         _ => panic!("Not implemented for non-f32"),
     }.unwrap();
 
-}
-
-fn play_sound_sox() {
-    println!("Playing a sweet 7th");
-    let sound = ShellCommand::new("play")
-        .arg("-n")
-        .arg("-c 1")
-        .arg("synth")
-        // .arg("sin %-12")
-        // .arg("sin %-9")
-        // .arg("sin %-5")
-        // .arg("sin %-2")
-        .output()
-        .expect("Could not play sound.");
-    println!("{:?}", sound.stdout);
-    println!("{:?}", sound.stderr);
 }
 
 fn host_device_setup() -> Result<(cpal::Host, cpal::Device, cpal::SupportedStreamConfig), anyhow::Error> {
@@ -142,16 +116,15 @@ where
 {
     // Signal chain to play back one second of each oscillator at A4
     let hz = signal::rate(config.sample_rate.0 as f64).const_hz(440.);
-    let ten_sec = (10*config.sample_rate.0) as usize;
+    let one_sec = (config.sample_rate.0) as usize;
     let mut synth = hz
         .clone()
         .sine()
-        // .take(one_sec)
-        .take(ten_sec)
-        // .chain(hz.clone().saw().take(one_sec))
-        // .chain(hz.clone().square().take(one_sec))
-        // .chain(hz.clone().noise_simplex().take(one_sec))
-        // .chain(signal::noise(0).take(one_sec))
+        .take(one_sec)
+        .chain(hz.clone().saw().take(one_sec))
+        .chain(hz.clone().square().take(one_sec))
+        .chain(hz.clone().noise_simplex().take(one_sec))
+        .chain(signal::noise(0).take(one_sec))
         .map(|s| s.to_sample::<f32>() *0.2);
 
     // A channel for indicating when playback has completed
@@ -201,9 +174,6 @@ where
 
 fn main() -> iced::Result {
     println!("Exploring the 🌊's...");
-
-    // TODO: play/pause event loop
-    // Probably want to investigate cpal::StreamTrait
 
     Waveform::run(Settings::default())    
 }
