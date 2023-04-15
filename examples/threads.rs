@@ -17,8 +17,7 @@ fn main() {
 
     let thread_sleep = 1;  // Threads sleep for 1 millisecond
     
-    let spawned_thread = spawn_thread(thread_sleep);
-    spawned_thread;
+    spawn_thread(thread_sleep);
 
     for i in 1..5 {
         println!("hi number {} from main thread", i);
