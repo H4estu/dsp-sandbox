@@ -6,93 +6,9 @@ use cpal::{
 
 use dasp::{signal, Sample, Signal};
 
-use iced::widget::{button, column, horizontal_rule, text};
-use iced::{Alignment, Application, executor, Command, Element, Settings, Theme};
-
 use std::sync::mpsc;
 use std::time::Duration;
 
-
-#[derive(Debug, Clone, Copy)]
-enum Message {
-    TogglePlayback,
-}
-
-// #[derive(Default)]
-struct Waveform {
-    is_playing: bool,
-    _host: cpal::Host,
-    device: cpal::Device,
-    supported_stream_config: cpal::SupportedStreamConfig,
-
-}
-
-impl Default for Waveform {
-
-    fn default() -> Self {
-        // Setup default audio backend
-        let (_host, device, config) = host_device_setup().unwrap();
-        Waveform {
-            is_playing: false,
-            _host: _host,
-            device: device,
-            supported_stream_config: config,
-        }
-    }
-}
-
-
-impl Application for Waveform {
-    type Executor = executor::Default;
-    type Flags = ();
-    type Message = Message;
-    type Theme = Theme;
-
-    fn new(_flags: ()) -> (Waveform, Command<Self::Message>) {
-        (Waveform::default(), Command::none())
-    }
-
-    fn theme(&self) -> Self::Theme {
-        Self::Theme::Dark
-    }
-
-    fn title(&self) -> String {
-        String::from("🌊")
-    }
-
-    fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
-        match message {
-            Message::TogglePlayback => self.is_playing = !self.is_playing
-        };
-        if self.is_playing {
-            play_sound_cpal();
-        }
-        Command::none()
-    }
-
-    fn view(&self) -> Element<Self::Message> {
-        column![
-            text("Toggle Play"),
-            horizontal_rule(10),
-            button(if self.is_playing{"pause"} else {"play"}).on_press(Message::TogglePlayback),
-        ]
-        .align_items(Alignment::Center)
-        .into()
-    }
-}
-
-fn play_sound_cpal() {
-
-    let config = Waveform::default().supported_stream_config;
-    let device = Waveform::default().device;
-
-    // Only care about f32 for now.
-    match config.sample_format() {
-        cpal::SampleFormat::F32 => run::<f32>(&device, &config.into()),
-        _ => panic!("Not implemented for non-f32"),
-    }.unwrap();
-
-}
 
 fn host_device_setup() -> Result<(cpal::Host, cpal::Device, cpal::SupportedStreamConfig), anyhow::Error> {
     println!("Setting up host deivce...");
@@ -172,8 +88,18 @@ where
     }
 }
 
-fn main() -> iced::Result {
+fn play_signal(device: cpal::Device, config: cpal::SupportedStreamConfig) {
+    // Only care about f32 for now.
+    match config.sample_format() {
+        cpal::SampleFormat::F32 => run::<f32>(&device, &config.into()),
+        _ => panic!("Not implemented for non-f32"),
+    }.unwrap();
+
+}
+
+fn main() {
     println!("Exploring the 🌊's...");
 
-    Waveform::run(Settings::default())    
+    let (_host, device, ssg) = host_device_setup().unwrap();
+    play_signal(device, ssg);
 }
