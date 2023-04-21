@@ -8,6 +8,7 @@ use dasp::{signal, Sample, Signal};
 use signal::{Sine, ConstHz};
 
 use std::sync::mpsc;
+use std::thread;
 use std::time::Duration;
 
 
@@ -95,6 +96,12 @@ fn play_signal(device: cpal::Device, config: cpal::SupportedStreamConfig) {
 fn main() {
     println!("Exploring the 🌊's...");
 
-    let (_host, device, ssg) = host_device_setup().unwrap();
-    play_signal(device, ssg);
+    thread::spawn(|| {
+        println!("Playing signal in thread");
+        let (_host, device, ssg) = host_device_setup().unwrap();
+        play_signal(device, ssg);
+        thread::sleep(Duration::from_millis(1));
+    }).join().unwrap();
+
+    // play_signal(device, ssg);
 }
