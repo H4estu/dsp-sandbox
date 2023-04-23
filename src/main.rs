@@ -8,6 +8,7 @@ use dasp::{signal, Sample, Signal};
 use signal::{Sine, ConstHz};
 
 use std::sync::mpsc;
+use std::thread;
 use std::time::Duration;
 
 
@@ -52,11 +53,21 @@ where
         Some(Duration::new(5, 0))
     )?;
 
-    stream.play()?;
+    // wait for playback to complete. Sounds won't play without the receiver being invoked.
+    // complete_rx.recv().unwrap();
 
-    // wait for playback to complete. Sounds won't play without these.
-    complete_rx.recv().unwrap();
-    stream.pause()?;
+    // Play the sine wave for 2 seconds, then pause 2 seconds, indefinitely
+    let mut num_loops = 0;
+    while num_loops < 5 {
+        stream.play()?;
+        thread::sleep(Duration::from_millis(2000));
+        stream.pause()?;
+        thread::sleep(Duration::from_millis(2000));
+
+        num_loops += 1;
+    }
+
+    // complete_rx.recv().unwrap();
 
     Ok(())
 }
@@ -95,6 +106,13 @@ fn play_signal(device: cpal::Device, config: cpal::SupportedStreamConfig) {
 fn main() {
     println!("Exploring the 🌊's...");
 
-    let (_host, device, ssg) = host_device_setup().unwrap();
-    play_signal(device, ssg);
+    thread::spawn(|| {
+        println!("Playing signal in thread");
+        let (_host, device, ssg) = host_device_setup().unwrap();
+        play_signal(device, ssg);
+    }).join().unwrap();
+
+    println!("Listening in main thread.");
+
+    // play_signal(device, ssg);
 }
