@@ -11,3 +11,4 @@ cpal = "0.15.2"
 dasp = { version="0.11.0", features=["all"] }
 fundsp = "0.12.0"
 iced = { version="0.8", features=["canvas"]}
+rodio = "0.17.1"
