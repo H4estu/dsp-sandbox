@@ -15,17 +15,16 @@ fn play() {
     let sink = Sink::try_new(&stream_handle).unwrap();
     
     let source = SineWave::new(440.0).amplify(0.10);
+    println!("\rPlaying sound...");
+
     sink.append(source);
+    sink.play();
+    thread::sleep(Duration::from_secs(1));
+    sink.pause();
 
     // sink.sleep_until_end();
 
-    for _ in 0..1 {
-        thread::sleep(Duration::from_secs(1));  // Start sound on initial loop
-        sink.pause();  // pause after 1 second.
-
-        thread::sleep(Duration::from_secs(1));
-        sink.play();
-    }
+    println!("\rDone playing.\r")
 }
 
 fn main() {
