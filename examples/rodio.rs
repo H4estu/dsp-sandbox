@@ -43,15 +43,18 @@ fn main() {
     // let mut stdout = MouseTerminal::from(stdout().into_raw_mode().unwrap());
     // write!(stdout, "{}{}q to exit. Click, click, click!", termion::clear::All, termion::cursor::Goto(1, 1)).unwrap();
     stdout.flush().unwrap();
+    println!("Captures Mouse Key events\r\nPress q to quit.\r");
 
     for c in stdin.events() {
+
         let event = c.unwrap();
         match event {
             Event::Key(Key::Char('q')) => break,
+            // Event::Key(Key::Char(c)) => c,
             Event::Mouse(_) => todo!("Mouse events"),
             Event::Key(Key::Left) => todo!("Left arrow key"),
             // Event::Unsupported(e) =>  println!("Error: {:?}", e),
-            _ => println!("Unsupported event"),
+            _ => println!("Unsupported event\r"),
         }
         // Immediately returns input characters, i.e. no need for pressing Enter.
         stdout.flush().unwrap();
