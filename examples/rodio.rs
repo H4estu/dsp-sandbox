@@ -17,7 +17,7 @@ fn set_paused(source: SineWave) {
 }
 
 
-fn play() {
+fn play(rx: Arc<Mutex<Receiver<Event>>>) {
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     let sink = Sink::try_new(&stream_handle).unwrap();
     
@@ -25,14 +25,24 @@ fn play() {
     println!("Playing sound...\r");
 
     sink.append(source);
-    thread::spawn(move || {
-        sink.sleep_until_end();
-        
-    });
-    thread::sleep(Duration::from_secs(5));
-
-    // sink.sleep_until_end();  // put this in a thread, have the thread get killed by a listener when an event is sent?
-
+    thread::spawn(move || 'sound: loop {
+        match rx.lock().unwrap().recv().unwrap() {
+            Event::Key(Key::Char('p')) => {
+                println!("Paused\r");
+                sink.pause();
+            },
+            Event::Key(Key::Char('r')) => {
+                println!("Resuming\r");
+                sink.play();
+            },
+            Event::Key(Key::Char('s')) => {
+                println!("Stopping\r");
+                sink.stop();
+                break 'sound;
+            },
+            _ => println!("Key not supported\r"),
+        }
+    }).join().unwrap();
 
     println!("Done playing.\r");
 }
@@ -81,7 +91,7 @@ fn play_thread(rx: Arc<Mutex<Receiver<Event>>>) {
     let player = std::thread::Builder::new().name("play_thread".to_string()).spawn(move || {
         let cmd = rx.lock().unwrap().recv().unwrap();
         match cmd {
-            Event::Key(Key::Char('p')) => play(),
+            Event::Key(Key::Char('p')) => play(Arc::clone(&rx)),
             Event::Key(Key::Char('q') | Key::Ctrl('c')) => std::process::exit(0),
             _ => println!("{:?}\r", cmd),
         }
