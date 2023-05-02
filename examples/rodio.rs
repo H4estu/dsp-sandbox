@@ -25,36 +25,46 @@ fn play(rx: Arc<Mutex<Receiver<Event>>>) {
     println!("Playing sound...\r");
 
     sink.append(source);
-    thread::spawn(move || 'sound: loop {
-        match rx.lock().unwrap().recv().unwrap() {
-            Event::Key(Key::Char('p')) => {
-                println!("Paused\r");
-                sink.pause();
+    thread::Builder::new().name("event_listener".to_string()).spawn(move || 'sound: loop {
+        match rx.lock().unwrap().recv() {
+            Ok(v) => match v {
+                Event::Key(Key::Char('p')) => {
+                    println!("Paused\r");
+                    sink.pause();
+                },
+                Event::Key(Key::Char('r')) => {
+                    println!("Resuming\r");
+                    sink.play();
+                },
+                Event::Key(Key::Char('s')) => {
+                    println!("Stopping\r");
+                    sink.stop();
+                    println!("Done playing.\r");
+                    break 'sound;
+                },
+                _ => println!("Key not supported\r"),
             },
-            Event::Key(Key::Char('r')) => {
-                println!("Resuming\r");
-                sink.play();
-            },
-            Event::Key(Key::Char('s')) => {
-                println!("Stopping\r");
-                sink.stop();
+            Err(e) => {
+                println!("Error: {}", e);
                 break 'sound;
             },
-            _ => println!("Key not supported\r"),
         }
-    }).join().unwrap();
-
-    println!("Done playing.\r");
+    }).expect("Could not create event listener thread").join().unwrap();
 }
 
 fn input_thread(tx: Sender<Event>) -> thread::JoinHandle<()> {
     std::thread::Builder::new().name("input_thread".to_string()).spawn(move || loop {
         let cmd = get_input();
-        println!("Input: {:?}", cmd);
+        println!("Input: {:?}\r", cmd);
         let tx1 = mpsc::Sender::clone(&tx);
-        tx1.send(cmd).expect("Input thread should be able to capture multiple events.");
+        match tx1.send(cmd) {
+            Ok(_) => {},  // Do nothing, cmd is successfully sent
+            Err(e) => {
+                println!("{}, quitting...\r", e);
+                break;
+            },
+        }
     }).expect("Input thread should be able to be created.")
-
 }
 
 fn get_input() -> Event {
