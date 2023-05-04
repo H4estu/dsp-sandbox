@@ -1,20 +1,14 @@
-use std::io::{stdin, stdout, Write};
+use std::io::{stdin, stdout};
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::{self, Sender, Receiver};
-use std::time::Duration;
 use std::thread;
 
-use rodio::{Decoder, OutputStream, Sink};
-use rodio::source::{Pausable, PeriodicAccess, SineWave, Source};
+use rodio::{OutputStream, Sink};
+use rodio::source::{SineWave, Source};
 
-use termion::input::{MouseTerminal, TermRead};
-use termion::event::{Event, Key, MouseEvent};
+use termion::input::{TermRead};
+use termion::event::{Event, Key};
 use termion::raw::IntoRawMode;
-
-fn set_paused(source: SineWave) {
-    println!("Pausing sound...");
-    source.pausable(false).set_paused(true)
-}
 
 
 fn play(rx: Arc<Mutex<Receiver<Event>>>) {
@@ -49,22 +43,23 @@ fn play(rx: Arc<Mutex<Receiver<Event>>>) {
                 break 'sound;
             },
         }
-    }).expect("Could not create event listener thread").join().unwrap();
+    }).expect("Listener thread should be created").join().unwrap();
 }
 
 fn input_thread(tx: Sender<Event>) -> thread::JoinHandle<()> {
     std::thread::Builder::new().name("input_thread".to_string()).spawn(move || loop {
         let cmd = get_input();
         println!("Input: {:?}\r", cmd);
+        // todo: spawn new channel on each loop
         let tx1 = mpsc::Sender::clone(&tx);
         match tx1.send(cmd) {
             Ok(_) => {},  // Do nothing, cmd is successfully sent
             Err(e) => {
                 println!("{}, quitting...\r", e);
                 break;
-            },
-        }
-    }).expect("Input thread should be able to be created.")
+            }
+        };
+    }).expect("Input thread should be created.")
 }
 
 fn get_input() -> Event {
@@ -72,25 +67,11 @@ fn get_input() -> Event {
     // Immediately returns input characters, i.e. no need for pressing Enter.
     // Only works if you do `let mut <variable>`. 
     let mut stdout = stdout().into_raw_mode().unwrap();
-    // let mut stdout = MouseTerminal::from(stdout().into_raw_mode().unwrap());
-    // write!(stdout, "{}{}q to exit. Click, click, click!", termion::clear::All, termion::cursor::Goto(1, 1)).unwrap();
-    // stdout.flush().unwrap();
+
     println!("Captures Mouse Key events.\r");
     println!("Press p to play sound.\r");
     println!("Press q to quit.\r");
 
-    // for c in stdin.events() {
-    //     let event = c.unwrap();
-    //     match event {
-    //         Event::Key(Key::Char('q') | Key::Ctrl('c')) => break,
-    //         Event::Key(Key::Char('p')) => play(),
-    //         // Event::Key(Key::Char(c)) => c,
-    //         Event::Mouse(_) => todo!("Mouse events"),
-    //         // Event::Unsupported(e) =>  println!("Error: {:?}", e),
-    //         _ => println!("{:?}\r", event),
-    //     }
-    //     // stdout.flush().unwrap();
-    // }
     match stdin.events().next() {
         Some(n) => n.unwrap(),
         None => Event::Key(Key::Char('q'))
