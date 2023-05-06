@@ -36,6 +36,14 @@ fn play(rx: Arc<Mutex<Receiver<Event>>>) {
                     println!("Done playing.\r");
                     break 'sound;
                 },
+                Event::Key(Key::Down) => {
+                    let current_speed = sink.speed();
+                    sink.set_speed(current_speed * 0.9);
+                },
+                Event::Key(Key::Up) => {
+                    let current_speed = sink.speed();
+                    sink.set_speed(current_speed / 0.9);
+                }
                 _ => println!("Key not supported\r"),
             },
             Err(e) => {
