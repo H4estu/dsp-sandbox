@@ -58,14 +58,13 @@ fn input_thread(tx: Sender<Event>) -> thread::JoinHandle<()> {
     std::thread::Builder::new().name("input_thread".to_string()).spawn(move || loop {
         let cmd = get_input();
         println!("Input: {:?}\r", cmd);
-        // todo: spawn new channel on each loop
         let tx1 = mpsc::Sender::clone(&tx);
         match tx1.send(cmd) {
             Ok(_) => {},  // Do nothing, cmd is successfully sent
             Err(e) => {
-                println!("{}, quitting...\r", e);
-                break;
-            }
+                println!("{}", e);
+                break  // Channel is closed, no more events can be read in this loop.
+            },
         };
     }).expect("Input thread should be created.")
 }
@@ -75,10 +74,6 @@ fn get_input() -> Event {
     // Immediately returns input characters, i.e. no need for pressing Enter.
     // Only works if you do `let mut <variable>`. 
     let mut stdout = stdout().into_raw_mode().unwrap();
-
-    println!("Captures Mouse Key events.\r");
-    println!("Press p to play sound.\r");
-    println!("Press q to quit.\r");
 
     match stdin.events().next() {
         Some(n) => n.unwrap(),
@@ -100,12 +95,17 @@ fn play_thread(rx: Arc<Mutex<Receiver<Event>>>) {
 }
 
 fn main() {
-    let (tx, rx) = mpsc::channel();
+    loop {
+        println!("Captures Mouse Key events.\r");
+        println!("Press p to play sound.\r");
+        println!("Press q to quit.\r");
 
-    let input_thread = input_thread(tx);
+        let (tx, rx) = mpsc::channel();
+        let input_thread = input_thread(tx);
 
-    let receiver = Arc::new(Mutex::new(rx));
-    play_thread(receiver);
+        let receiver = Arc::new(Mutex::new(rx));
+        play_thread(receiver);
 
-    input_thread.join().unwrap();
+        input_thread.join().unwrap();
+    }
 }
